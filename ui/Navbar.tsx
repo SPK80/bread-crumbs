@@ -1,11 +1,11 @@
 import React from "react";
-import {Button, StyleSheet, Text, View} from "react-native";
+import {StyleSheet, Text, View} from "react-native";
 
 type PropsType = {}
 
 export const Navbar: React.FC<PropsType> = ({}) => {
   return <View style={styles.container}>
-    <Text style={styles.text}>Walk Nav</Text>
+    <Text style={styles.text}>Bread Crumbs</Text>
   </View>
 }
 

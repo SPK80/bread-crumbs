@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rn-todo-list",
-    "slug": "rn-todo-list",
+    "name": "bread-crumbs",
+    "slug": "bread-crumbs",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
