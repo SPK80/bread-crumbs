@@ -6,12 +6,12 @@ import {Accelerometer, Magnetometer} from "expo-sensors";
 import {Subscription} from "expo-modules-core";
 import {Button} from "./ui/Button";
 import {calcAngle} from "./bll/compass";
-import {SmoothingFilter} from "./bll/smoothingFilter";
+import {AverageFilter} from "./bll/averageFilter";
 
 export default function App() {
   const [magData, setMagData] = useState({x: 0, y: 0, z: 0});
   const [accelData, setAccelData] = useState({x: 0, y: 0, z: 0});
-  const [filter, setFilter] = useState<SmoothingFilter>()
+  const [filter, setFilter] = useState<AverageFilter>()
   
   
   const [magSubscription, setMagSubscription] = useState<Subscription | null>(null);
@@ -36,7 +36,7 @@ export default function App() {
   };
   
   useEffect(() => {
-    setFilter(new SmoothingFilter())
+    setFilter(new AverageFilter(5))
     _subscribe();
     return () => _unsubscribe();
   }, []);
@@ -55,7 +55,6 @@ export default function App() {
       <Text style={styles.text}>
         fi: {fi}
       </Text>
-      
       <View style={styles.buttonContainer}>
         <Button onPress={accelSubscription ? _unsubscribe : _subscribe}>
           {accelSubscription ? 'On' : 'Off'}
@@ -74,7 +73,6 @@ export default function App() {
           }
         ]}>
         </View>
-      
       </View>
       
       <StatusBar style="auto"/>
@@ -97,7 +95,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   compass: {
-    // position: "relative",
     backgroundColor: '#eab7ea',
     width: 200,
     height: 200,
@@ -111,5 +108,4 @@ const styles = StyleSheet.create({
     width: 2,
     height: 90,
   },
-  
 });
