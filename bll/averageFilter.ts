@@ -1,4 +1,6 @@
-export class AverageFilter {
+import {IFilter} from "./IFilter";
+
+export class AverageFilter implements IFilter {
   values: number[]
   
   constructor(length: number = 1) {
