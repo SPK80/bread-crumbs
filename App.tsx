@@ -6,18 +6,24 @@ import {Accelerometer, Magnetometer} from "expo-sensors";
 import {Subscription} from "expo-modules-core";
 import {Button} from "./ui/Button";
 import {calcAngle} from "./bll/compass";
+import {IFilter} from "./bll/IFilter";
 import {AverageFilter} from "./bll/averageFilter";
+import {Arrow} from "./ui/Arrow";
+
+const rounded = function (number: number) {
+  return +number.toFixed(2);
+}
 
 export default function App() {
   const [magData, setMagData] = useState({x: 0, y: 0, z: 0});
   const [accelData, setAccelData] = useState({x: 0, y: 0, z: 0});
-  const [filter, setFilter] = useState<AverageFilter>()
-  
+  const [filter, setFilter] = useState<IFilter>()
+  const [angle, setAngle] = useState(0)
   
   const [magSubscription, setMagSubscription] = useState<Subscription | null>(null);
   const [accelSubscription, setAccelSubscription] = useState<Subscription | null>(null);
   
-  const setInterval = (ms: number) => {
+  const setMeasurementInterval = (ms: number) => {
     Magnetometer.setUpdateInterval(ms);
     Accelerometer.setUpdateInterval(ms);
   }
@@ -25,7 +31,7 @@ export default function App() {
   const _subscribe = () => {
     setMagSubscription(Magnetometer.addListener(setMagData));
     setAccelSubscription(Accelerometer.addListener(setAccelData));
-    setInterval(100);
+    setMeasurementInterval(100);
   }
   
   const _unsubscribe = () => {
@@ -41,42 +47,34 @@ export default function App() {
     return () => _unsubscribe();
   }, []);
   
+  useEffect(() => {
+    setAngle(filter?.calc(calcAngle(magData, accelData)) ?? 0)
+  }, [magData])
   
-  const fi = filter?.calc(calcAngle(magData, accelData)) ?? 0
   return (
-    <View style={styles.container}>
-      <Navbar/>
-      <Text style={styles.text}>
-        magX: {Math.round(magData.x)} magY: {Math.round(magData.y)} magZ: {Math.round(magData.z)}
-      </Text>
-      <Text style={styles.text}>
-        accelX: {Math.round(accelData.x * 10)} accelY: {Math.round(accelData.y * 10)} accelZ: {Math.round(accelData.z * 10)}
-      </Text>
-      <Text style={styles.text}>
-        fi: {fi}
-      </Text>
-      <View style={styles.buttonContainer}>
-        <Button onPress={accelSubscription ? _unsubscribe : _subscribe}>
-          {accelSubscription ? 'On' : 'Off'}
-        </Button>
-      </View>
-      
-      <View style={styles.compass}>
-        <View style={[
-          styles.arrow,
-          {
-            transform: [
-              {translateX: 100},
-              {translateY: 50},
-              {rotate: `${fi}deg`},
-            ]
-          }
-        ]}>
+    <>
+      <StatusBar style="auto"/>
+      <View style={styles.container}>
+        <Navbar/>
+        <Text style={styles.text}>
+          magX: {rounded(magData.x)} magY: {rounded(magData.y)} magZ: {rounded(magData.z)}
+        </Text>
+        <Text style={styles.text}>
+          accelX: {rounded(accelData.x)} accelY: {rounded(accelData.y)} accelZ: {rounded(accelData.z)}
+        </Text>
+        <Text style={styles.text}>
+          fi: {angle}
+        </Text>
+        <View style={styles.buttonContainer}>
+          <Button onPress={accelSubscription ? _unsubscribe : _subscribe}>
+            {accelSubscription ? 'On' : 'Off'}
+          </Button>
+        </View>
+        <View style={styles.compass}>
+          <Arrow angle={angle}/>
         </View>
       </View>
-      
-      <StatusBar style="auto"/>
-    </View>
+    </>
   );
 }
 
@@ -101,11 +99,5 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     marginTop: 10,
     marginHorizontal: 'auto',
-  },
-  arrow: {
-    position: "absolute",
-    backgroundColor: '#3949aa',
-    width: 2,
-    height: 90,
   },
 });
