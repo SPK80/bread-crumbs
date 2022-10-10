@@ -9,6 +9,7 @@ import {calcAngle} from "./bll/compass";
 import {IFilter} from "./bll/IFilter";
 import {AverageFilter} from "./bll/averageFilter";
 import {Arrow} from "./ui/Arrow";
+import * as Location from 'expo-location';
 
 const rounded = function (number: number) {
   return +number.toFixed(2);
@@ -23,6 +24,12 @@ export default function App() {
   const [magSubscription, setMagSubscription] = useState<Subscription | null>(null);
   const [accelSubscription, setAccelSubscription] = useState<Subscription | null>(null);
   
+  const [coords, setCoords] = useState<{ lat: number, long: number }>({lat: 0, long: 0});
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  const [count, setCount] = useState(0);
+  const [elapsed, setElapsed] = useState(0)
+  
   const setMeasurementInterval = (ms: number) => {
     Magnetometer.setUpdateInterval(ms);
     Accelerometer.setUpdateInterval(ms);
@@ -31,7 +38,7 @@ export default function App() {
   const _subscribe = () => {
     setMagSubscription(Magnetometer.addListener(setMagData));
     setAccelSubscription(Accelerometer.addListener(setAccelData));
-    setMeasurementInterval(100);
+    setMeasurementInterval(200);
   }
   
   const _unsubscribe = () => {
@@ -42,20 +49,49 @@ export default function App() {
   };
   
   useEffect(() => {
+    
+    const getLocation = () => {
+      setTimeout(async () => {
+        const before = Date.now()
+        const location = await Location.getCurrentPositionAsync({})
+        setCoords({lat: location.coords.latitude, long: location.coords.longitude})
+        setCount(c => c + 1)
+        setElapsed(Date.now() - before)
+        getLocation()
+      }, 1000)
+    }
+    
+    (async () => {
+      const {status} = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+      getLocation()
+    })();
+    
     setFilter(new AverageFilter(5))
     _subscribe();
     return () => _unsubscribe();
   }, []);
   
   useEffect(() => {
-    setAngle(filter?.calc(calcAngle(magData, accelData)) ?? 0)
+    setAngle(filter?.calc(calcAngle(magData, accelData)) ?? 0);
   }, [magData])
+  
+  let text = 'Waiting..';
+  if (errorMsg) {
+    text = errorMsg;
+  } else if (coords) {
+    text = JSON.stringify(coords);
+  }
   
   return (
     <>
       <StatusBar style="auto"/>
       <View style={styles.container}>
         <Navbar/>
+        <Text style={styles.text}>elapsed: {elapsed}</Text>
         <Text style={styles.text}>
           magX: {rounded(magData.x)} magY: {rounded(magData.y)} magZ: {rounded(magData.z)}
         </Text>
@@ -65,6 +101,8 @@ export default function App() {
         <Text style={styles.text}>
           fi: {angle}
         </Text>
+        <Text style={styles.text}>{text}</Text>
+        <Text style={styles.text}>{count}</Text>
         <View style={styles.buttonContainer}>
           <Button onPress={accelSubscription ? _unsubscribe : _subscribe}>
             {accelSubscription ? 'On' : 'Off'}
@@ -87,7 +125,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   text: {
-    color: 'red',
+    color: '#1919ca',
   },
   buttonContainer: {
     flexDirection: 'row',
