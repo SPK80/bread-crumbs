@@ -1,10 +1,5 @@
 import * as Location from 'expo-location';
 
-export type CoordsType = {
-  lat: number
-  long: number
-}
-
 export const locationApi = {
   async init() {
     const {status} = await Location.requestForegroundPermissionsAsync();
@@ -12,6 +7,6 @@ export const locationApi = {
   },
   async getCoords() {
     const location = await Location.getCurrentPositionAsync({})
-    return {lat: location.coords.latitude, long: location.coords.longitude} as CoordsType
+    return {lat: location.coords.latitude, long: location.coords.longitude}
   }
 }

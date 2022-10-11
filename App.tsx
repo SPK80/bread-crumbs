@@ -6,8 +6,10 @@ import {calcAngle} from "./bll/compass";
 import {IFilter} from "./bll/IFilter";
 import {AverageFilter} from "./bll/averageFilter";
 import {Arrow} from "./ui/Arrow";
-import {CoordsType, locationApi} from "./dal/locationApi";
+import {locationApi} from "./dal/locationApi";
 import {sensorsApi, Vector3D} from "./dal/sensorsApi";
+import {Button} from "./ui/Button";
+import {CoordsType, CrumbsStack} from "./bll/crumbs";
 
 const rounded = function (number: number) {
   return +number.toFixed(2);
@@ -20,6 +22,8 @@ export default function App() {
   const [angle, setAngle] = useState(0)
   
   const [coords, setCoords] = useState<CoordsType>({lat: 0, long: 0});
+  const [crumbs, setCrumbs] = useState<CrumbsStack | null>(null);
+  
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   const [count, setCount] = useState(0);
@@ -46,6 +50,9 @@ export default function App() {
     setFilter(new AverageFilter(5))
     sensorsApi.subscribe(setMagData, setAccelData)
     sensorsApi.setMeasurementInterval(200)
+    
+    setCrumbs(new CrumbsStack())
+    
     return () => sensorsApi.unsubscribe();
   }, []);
   
@@ -65,20 +72,27 @@ export default function App() {
       <StatusBar style="auto"/>
       <View style={styles.container}>
         <Navbar/>
-        <Text style={styles.text}>elapsed: {elapsed}</Text>
-        <Text style={styles.text}>
-          magX: {rounded(magData.x)} magY: {rounded(magData.y)} magZ: {rounded(magData.z)}
-        </Text>
-        <Text style={styles.text}>
-          accelX: {rounded(accelData.x)} accelY: {rounded(accelData.y)} accelZ: {rounded(accelData.z)}
-        </Text>
-        <Text style={styles.text}>
-          fi: {angle}
-        </Text>
-        <Text style={styles.text}>{text}</Text>
-        <Text style={styles.text}>{count}</Text>
-        <View style={styles.compass}>
-          <Arrow angle={angle}/>
+        <View style={styles.content}>
+          <Text style={styles.text}>elapsed: {elapsed}</Text>
+          <Text style={styles.text}>
+            magX: {rounded(magData.x)} magY: {rounded(magData.y)} magZ: {rounded(magData.z)}
+          </Text>
+          <Text style={styles.text}>
+            accelX: {rounded(accelData.x)} accelY: {rounded(accelData.y)} accelZ: {rounded(accelData.z)}
+          </Text>
+          <Text style={styles.text}>
+            fi: {angle}
+          </Text>
+          <Text style={styles.text}>{text}</Text>
+          <Text style={styles.text}>{count}</Text>
+          <Text style={styles.text}>{JSON.stringify(crumbs?.current)}</Text>
+          
+          <View style={styles.compass}>
+            <Arrow angle={angle}/>
+          </View>
+        </View>
+        <View>
+          <Button onPress={() => crumbs && crumbs.push(coords)}>Drop Crumb</Button>
         </View>
       </View>
     </>
@@ -89,6 +103,9 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 30,
     flex: 1,
+  },
+  content: {
+    height: '80%',
   },
   body: {
     padding: 10,
