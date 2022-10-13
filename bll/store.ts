@@ -4,6 +4,7 @@ import {appReducer} from "./appReducer";
 import {AppActionsType} from "./appActions";
 import {CompassActionsType} from "../features/compass/bll/compassActions";
 import {compassReducer} from "../features/compass/bll/compassReducer";
+import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
 
 const rootReducer = combineReducers({
   app: appReducer,
@@ -12,8 +13,9 @@ const rootReducer = combineReducers({
 
 export type AppRootStateType = ReturnType<typeof rootReducer>
 export type AllActionsType = AppActionsType | CompassActionsType
+export type AppDispatchType = ThunkDispatch<AppRootStateType, unknown, AllActionsType>
+export type AppThunkType<ReturnType = void> = ThunkAction<ReturnType, AppRootStateType, unknown, AllActionsType>
 
 export const store = createStore(rootReducer, applyMiddleware(thunkMiddleware))
-
-export type AppDispatchType = ThunkDispatch<AppRootStateType, unknown, AllActionsType>
-export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, AppRootStateType, unknown, AllActionsType>
+export const useAppDispatch: () => AppDispatchType = useDispatch
+export const useAppSelector: TypedUseSelectorHook<AppRootStateType> = useSelector

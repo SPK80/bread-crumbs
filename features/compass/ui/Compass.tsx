@@ -3,15 +3,12 @@ import {StyleSheet, View} from "react-native";
 import {Arrow} from "./Arrow";
 import {AverageFilter} from "../../../common/bll/averageFilter";
 import {sensorsApi, Vector3D} from "../dal/sensorsApi";
-import {useAppDispatch, useAppSelector} from "../../../bll/hooks";
-import {AppRootStateType} from "../../../bll/store";
+import {AppRootStateType, useAppDispatch, useAppSelector} from "../../../bll/store";
 import {calcAzimuthAngleAC, setAzimuthAngleFilterAC} from "../bll/compassActions";
 
 export const Compass: React.FC = () => {
-  
   const compassState = useAppSelector((state: AppRootStateType) => state.compass)
   const dispatch = useAppDispatch()
-  
   
   const [magData, setMagData] = useState<Vector3D>({x: 0, y: 0, z: 0});
   const [accelData, setAccelData] = useState<Vector3D>({x: 0, y: 0, z: 0});
