@@ -34,16 +34,23 @@ const calcAzimuthAngle = (magVector: { x: number, y: number, z: number },
   return Math.atan2(vector_north.x, vector_north.y) * 180 / Math.PI;
 }
 
-
-const initialState = {
-  azimuthAngle: 0 as number,
-  azimuthAngleFilter: null as IFilter | null,
-};
+const calcTargetAngle = (location: { lat: number; long: number },
+                         target: { lat: number; long: number }
+): number => {
+  return Math.atan2((location.long - target.long), (location.lat - target.lat)) * 180 / Math.PI
+}
 
 export type CompassStateType = {
   azimuthAngle: number
+  targetAngle: number
   azimuthAngleFilter: IFilter | null
 }
+
+const initialState: CompassStateType = {
+  azimuthAngle: 0,
+  targetAngle: 0,
+  azimuthAngleFilter: null,
+};
 
 export const compassReducer = (state: CompassStateType = initialState, action: CompassActionsType): CompassStateType => {
   switch (action.type) {
@@ -53,6 +60,10 @@ export const compassReducer = (state: CompassStateType = initialState, action: C
       return {...state, azimuthAngle}
     case 'SET-AZIMUTH-ANGLE-FILTER':
       return {...state, azimuthAngleFilter: action.azimuthAngleFilter}
+    case "CALC-TARGET-ANGLE":
+      const targetAngle = calcTargetAngle(action.location, action.target)
+      // if (Number.isNaN(targetAngle)) return state
+      return {...state, targetAngle}
     default:
       return state
   }
